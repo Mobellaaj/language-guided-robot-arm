@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Gazebo recognizes a fixed joint to the special 'world' link as an anchor.
+         Keep the model dynamic: making the whole arm static would lock every joint. -->
+    <link name="world" />
+    <joint name="world_anchor_joint" type="fixed">
+        <parent link="world" />
+        <child link="base_footprint" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>
+
+    <xacro:macro name="enable_self_collision" params="link">
+        <gazebo reference="${link}">
+            <selfCollide>true</selfCollide>
+        </gazebo>
+    </xacro:macro>
+    <xacro:enable_self_collision link="base_link" />
+    <xacro:enable_self_collision link="shoulder_link" />
+    <xacro:enable_self_collision link="upper_arm_link" />
+    <xacro:enable_self_collision link="forearm_link" />
+    <xacro:enable_self_collision link="gripper_palm_link" />
+    <xacro:enable_self_collision link="left_finger_link" />
+    <xacro:enable_self_collision link="right_finger_link" />
+
+    <!-- Contact friction for the grasp exercise; runtime grasping is not yet verified. -->
+    <gazebo reference="left_finger_link">
+        <mu1>1</mu1>
+        <mu2>1</mu2>
+    </gazebo>
+    <gazebo reference="right_finger_link">
+        <mu1>1</mu1>
+        <mu2>1</mu2>
+    </gazebo>
+
+    <!-- Effort-based position control, with provisional gains to verify at runtime.
+         Output limits are torques (N m) for revolute joints, forces (N) for fingers. -->
+    <xacro:macro name="position_controller" params="joint topic p i d effort">
+        <gazebo>
+            <plugin filename="gz-sim-joint-position-controller-system"
+                    name="gz::sim::systems::JointPositionController">
+                <joint_name>${joint}</joint_name>
+                <topic>${topic}</topic>
+                <p_gain>${p}</p_gain>
+                <i_gain>${i}</i_gain>
+                <d_gain>${d}</d_gain>
+                <i_max>1</i_max>
+                <i_min>-1</i_min>
+                <cmd_max>${effort}</cmd_max>
+                <cmd_min>${-effort}</cmd_min>
+                <initial_position>0</initial_position>
+            </plugin>
+        </gazebo>
+    </xacro:macro>
+
+    <xacro:position_controller joint="base_rotation_joint" topic="/arm/base/target"
+                                p="30" i="1" d="2" effort="10" />
+    <xacro:position_controller joint="shoulder_joint" topic="/arm/shoulder/target"
+                                p="100" i="2" d="5" effort="10" />
+    <xacro:position_controller joint="elbow_joint" topic="/arm/elbow/target"
+                                p="60" i="1" d="2" effort="5" />
+    <xacro:position_controller joint="gripper_opening_joint" topic="/arm/gripper/target"
+                                p="200" i="0.5" d="2" effort="5" />
+    <xacro:position_controller joint="right_finger_joint" topic="/arm/gripper/target"
+                                p="200" i="0.5" d="2" effort="5" />
+
+    <gazebo>
+        <plugin filename="gz-sim-joint-state-publisher-system"
+                name="gz::sim::systems::JointStatePublisher">
+            <topic>/model/learning_arm/joint_state</topic>
+        </plugin>
+    </gazebo>
+</robot>
