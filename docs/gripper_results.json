@@ -1,0 +1,200 @@
+[
+  {
+    "phase": "open",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": 3.5208871681688074e-22,
+      "shoulder_joint": -2.53871231656206e-40,
+      "elbow_joint": 3.007781867781453e-40,
+      "gripper_opening_joint": 0.035000000000000205,
+      "right_finger_joint": 0.035000000000000205
+    },
+    "block": {
+      "red_block": [
+        0.326506350946,
+        -2.1083764353825953e-19,
+        0.019999080757770224
+      ]
+    }
+  },
+  {
+    "phase": "half_open",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": 7.821903348311092e-22,
+      "shoulder_joint": -8.668405785152847e-40,
+      "elbow_joint": -1.1081769249824942e-40,
+      "gripper_opening_joint": 0.01752294184206526,
+      "right_finger_joint": 0.01752294184206526
+    },
+    "block": {
+      "red_block": [
+        0.326506350946,
+        -2.1083764353825953e-19,
+        0.019999080757770224
+      ]
+    }
+  },
+  {
+    "phase": "closed_empty",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": 4.2154471012150077e-22,
+      "shoulder_joint": -8.104235502666e-40,
+      "elbow_joint": -9.635536332925665e-41,
+      "gripper_opening_joint": 1.5141189959321613e-05,
+      "right_finger_joint": 1.5141189959321603e-05
+    },
+    "block": {
+      "red_block": [
+        0.326506350946,
+        -2.1083764353825953e-19,
+        0.019999080757770224
+      ]
+    }
+  },
+  {
+    "phase": "approach",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": -1.5969811769989634e-22,
+      "shoulder_joint": 0.8910051436179836,
+      "elbow_joint": 2.26202841303902,
+      "gripper_opening_joint": 0.035000000000000316,
+      "right_finger_joint": 0.035000000000000316
+    },
+    "block": {
+      "red_block": [
+        0.326506350946,
+        -2.1083764353825953e-19,
+        0.019999080757770224
+      ]
+    }
+  },
+  {
+    "phase": "at_block",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": -2.146484256367753e-22,
+      "shoulder_joint": 1.0583174384928504,
+      "elbow_joint": 2.0947859162887834,
+      "gripper_opening_joint": 0.035000000000000316,
+      "right_finger_joint": 0.035000000000000316
+    },
+    "block": {
+      "red_block": [
+        0.326506350946,
+        -2.1083764353825953e-19,
+        0.019999080757770224
+      ]
+    }
+  },
+  {
+    "phase": "grasp",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": 4.999708595395287e-16,
+      "shoulder_joint": 1.0582507223134001,
+      "elbow_joint": 2.094784826673152,
+      "gripper_opening_joint": 0.019999981613115787,
+      "right_finger_joint": 0.019999981613116252
+    },
+    "block": {
+      "red_block": [
+        0.326506350946,
+        -2.1083764353825953e-19,
+        0.019999080757770224
+      ]
+    }
+  },
+  {
+    "phase": "lift",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": -1.7105404388111152e-16,
+      "shoulder_joint": 0.908739016772476,
+      "elbow_joint": 2.24195180758564,
+      "gripper_opening_joint": 0.019999981698078036,
+      "right_finger_joint": 0.019999981698078022
+    },
+    "block": {
+      "red_block": [
+        0.307561992805157,
+        -4.674499733328866e-17,
+        0.04846006474135829
+      ]
+    }
+  },
+  {
+    "phase": "hold_lift",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": -1.4968628671096096e-16,
+      "shoulder_joint": 0.9080584857089534,
+      "elbow_joint": 2.241937100440799,
+      "gripper_opening_joint": 0.019999981516298726,
+      "right_finger_joint": 0.019999981516298712
+    },
+    "block": {
+      "red_block": [
+        0.3076488738867084,
+        -3.954624075667762e-17,
+        0.04859467078326346
+      ]
+    }
+  },
+  {
+    "phase": "lower",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": -1.5276807503685515e-16,
+      "shoulder_joint": 1.0543484290693612,
+      "elbow_joint": 2.096064709352275,
+      "gripper_opening_joint": 0.019999981018419974,
+      "right_finger_joint": 0.01999998101841994
+    },
+    "block": {
+      "red_block": [
+        0.3269572737870943,
+        -3.387327892798614e-17,
+        0.019999884601465925
+      ]
+    }
+  },
+  {
+    "phase": "release",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": -1.0817173372639326e-16,
+      "shoulder_joint": 1.0541559561492915,
+      "elbow_joint": 2.0946499319646086,
+      "gripper_opening_joint": 0.03479590101402664,
+      "right_finger_joint": 0.034795901014026624
+    },
+    "block": {
+      "red_block": [
+        0.3269572737870943,
+        -3.387327892798614e-17,
+        0.019999884601465925
+      ]
+    }
+  },
+  {
+    "phase": "retreat",
+    "joints": {
+      "world_anchor_joint": 0.0,
+      "base_rotation_joint": -8.884212031283194e-17,
+      "shoulder_joint": 0.8847730654925015,
+      "elbow_joint": 2.26184826465423,
+      "gripper_opening_joint": 0.03479897745801567,
+      "right_finger_joint": 0.034798977458015655
+    },
+    "block": {
+      "red_block": [
+        0.3269572737870943,
+        -3.387327892798614e-17,
+        0.019999884601465925
+      ]
+    }
+  }
+]

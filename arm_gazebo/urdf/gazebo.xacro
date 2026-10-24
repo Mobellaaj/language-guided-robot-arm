@@ -58,6 +58,8 @@
                                 p="100" i="2" d="5" effort="10" />
     <xacro:position_controller joint="elbow_joint" topic="/arm/elbow/target"
                                 p="60" i="1" d="2" effort="5" />
+    <xacro:position_controller joint="wrist_pitch_joint" topic="/arm/wrist/target"
+                                p="20" i="0.5" d="1" effort="2" />
     <xacro:position_controller joint="gripper_opening_joint" topic="/arm/gripper/target"
                                 p="200" i="0.5" d="2" effort="5" />
     <xacro:position_controller joint="right_finger_joint" topic="/arm/gripper/target"

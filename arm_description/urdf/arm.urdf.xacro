@@ -33,9 +33,9 @@
             <origin xyz="${xyz}" rpy="0 0 0" />
             <mass value="${mass}" />
             <inertia ixx="${mass * (sy * sy + sz * sz) / 12}"
-                     iyy="${mass * (sx * sx + sz * sz) / 12}"
-                     izz="${mass * (sx * sx + sy * sy) / 12}"
-                     ixy="0" ixz="0" iyz="0" />
+                iyy="${mass * (sx * sx + sz * sz) / 12}"
+                izz="${mass * (sx * sx + sy * sy) / 12}"
+                ixy="0" ixz="0" iyz="0" />
         </inertial>
     </xacro:macro>
 
@@ -51,9 +51,9 @@
             <origin xyz="${xyz}" rpy="0 0 0" />
             <mass value="${mass}" />
             <inertia ixx="${mass * (3 * radius * radius + length * length) / 12}"
-                     iyy="${mass * (3 * radius * radius + length * length) / 12}"
-                     izz="${mass * radius * radius / 2}"
-                     ixy="0" ixz="0" iyz="0" />
+                iyy="${mass * (3 * radius * radius + length * length) / 12}"
+                izz="${mass * radius * radius / 2}"
+                ixy="0" ixz="0" iyz="0" />
         </inertial>
     </xacro:macro>
 
@@ -86,7 +86,7 @@
             <material name="gray" />
         </visual>
         <xacro:cylinder_physics mass="${base_mass}" radius="0.1"
-                                length="${base_height}" xyz="0 0 ${base_height / 2}" />
+            length="${base_height}" xyz="0 0 ${base_height / 2}" />
     </link>
 
     <!-- The joint frame is at the top of the stationary base. -->
@@ -105,19 +105,45 @@
         <visual>
             <origin xyz="0.04 0 ${pedestal_height / 2}" rpy="0 0 0" />
             <geometry>
-                <box size="0.14 0.08 ${pedestal_height}" />
+                <box size="0.28 0.08 ${pedestal_height}" />
             </geometry>
             <material name="orange" />
         </visual>
-        <xacro:box_physics mass="${pedestal_mass}" sx="0.14" sy="0.08"
-                           sz="${pedestal_height}" xyz="0.04 0 ${pedestal_height / 2}" />
+        <xacro:box_physics mass="${pedestal_mass}" sx="0.28" sy="0.08"
+            sz="${pedestal_height}" xyz="0.04 0 ${pedestal_height / 2}" />
     </link>
+
+    <!-- Fixed fork supports: inner faces at Y = +/-0.028 m leave
+         3 mm clearance around the upper arm's 0.025 m radius.
+         Each block is 4 x 1.2 x 5 cm, with a provisional mass of 30 g.
+         Separate fixed links keep each block's inertia easy to understand. -->
+    <xacro:macro name="shoulder_support" params="name side">
+        <joint name="${name}_mount_joint" type="fixed">
+            <parent link="shoulder_link" />
+            <child link="${name}" />
+            <origin xyz="0.11 ${side * 0.034} ${pedestal_height + 0.025}"
+                rpy="0 0 0" />
+        </joint>
+        <link name="${name}">
+            <visual>
+                <geometry>
+                    <box size="0.04 0.012 0.05" />
+                </geometry>
+                <material name="gray" />
+            </visual>
+            <xacro:box_physics mass="0.03" sx="0.04" sy="0.012" sz="0.05"
+                xyz="0 0 0" />
+        </link>
+    </xacro:macro>
+
+    <xacro:shoulder_support name="left_shoulder_support_link" side="1" />
+    <xacro:shoulder_support name="right_shoulder_support_link" side="-1" />
 
     <!-- Shoulder pitch: local Y turns with the base rotation joint. -->
     <joint name="shoulder_joint" type="revolute">
         <parent link="shoulder_link" />
         <child link="upper_arm_link" />
-        <origin xyz="0.04 0 ${pedestal_height}" rpy="0 0 0" />
+        <origin xyz="0.11 0 ${pedestal_height + 0.025 + 0.005}" rpy="0 0 0" />
         <axis xyz="0 1 0" />
         <limit lower="${-pi / 2}" upper="${pi / 2}" effort="10" velocity="1" />
         <dynamics damping="0.1" friction="0" />
@@ -128,12 +154,15 @@
         <visual>
             <origin xyz="0 0 ${upper_arm_length / 2}" rpy="0 0 0" />
             <geometry>
-                <box size="0.05 0.05 ${upper_arm_length}" />
+                <cylinder radius="0.025" length="${upper_arm_length}" />
             </geometry>
             <material name="blue" />
         </visual>
-        <xacro:box_physics mass="${upper_arm_mass}" sx="0.05" sy="0.05"
-                           sz="${upper_arm_length}" xyz="0 0 ${upper_arm_length / 2}" />
+        <xacro:cylinder_physics
+            mass="${upper_arm_mass}"
+            radius="0.025"
+            length="${upper_arm_length}"
+            xyz="0 0 ${upper_arm_length / 2}" />
     </link>
 
     <joint name="elbow_joint" type="revolute">
@@ -149,19 +178,26 @@
         <visual>
             <origin xyz="0 0 ${forearm_length / 2}" rpy="0 0 0" />
             <geometry>
-                <box size="0.04 0.04 ${forearm_length}" />
+                <cylinder radius="0.02" length="${forearm_length}" />
             </geometry>
             <material name="orange" />
         </visual>
-        <xacro:box_physics mass="${forearm_mass}" sx="0.04" sy="0.04"
-                           sz="${forearm_length}" xyz="0 0 ${forearm_length / 2}" />
+        <xacro:cylinder_physics
+            mass="${forearm_mass}"
+            radius="0.02"
+            length="${forearm_length}"
+            xyz="0 0 ${forearm_length / 2}" />
     </link>
 
-    <!-- Fixed mounting: there is no wrist rotation joint. -->
-    <joint name="gripper_mount_joint" type="fixed">
+    <!-- Wrist pitch tilts the palm and fingers independently of the elbow.
+         Zero keeps the previous straight gripper mounting; initial range +/-45 deg. -->
+    <joint name="wrist_pitch_joint" type="revolute">
         <parent link="forearm_link" />
         <child link="gripper_palm_link" />
         <origin xyz="0 0 ${forearm_length}" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="${-pi / 4}" upper="${pi / 4}" effort="2" velocity="0.5" />
+        <dynamics damping="0.1" friction="0" />
     </joint>
 
     <link name="gripper_palm_link">
@@ -173,7 +209,7 @@
             <material name="gray" />
         </visual>
         <xacro:box_physics mass="${palm_mass}" sx="0.06" sy="0.10"
-                           sz="${palm_height}" xyz="0 0 ${palm_height / 2}" />
+            sz="${palm_height}" xyz="0 0 ${palm_height / 2}" />
     </link>
 
     <!-- The position is ONE finger's travel, in metres; total gap = 2 * position. -->
@@ -195,7 +231,7 @@
             <material name="blue" />
         </visual>
         <xacro:box_physics mass="${finger_mass}" sx="0.02" sy="${finger_thickness}"
-                           sz="${finger_length}" xyz="0 0 ${finger_length / 2}" />
+            sz="${finger_length}" xyz="0 0 ${finger_length / 2}" />
     </link>
 
     <joint name="right_finger_joint" type="prismatic">
@@ -222,7 +258,7 @@
             <material name="blue" />
         </visual>
         <xacro:box_physics mass="${finger_mass}" sx="0.02" sy="${finger_thickness}"
-                           sz="${finger_length}" xyz="0 0 ${finger_length / 2}" />
+            sz="${finger_length}" xyz="0 0 ${finger_length / 2}" />
     </link>
 
     <!-- Reference halfway along the fingers, centered in the opening. -->
@@ -234,7 +270,7 @@
     <link name="tool0" />
 
     <xacro:if value="$(arg gazebo)">
-        <xacro:include filename="gazebo.xacro" />
+        <xacro:include filename="$(find arm_gazebo)/urdf/gazebo.xacro" />
     </xacro:if>
 
 </robot>

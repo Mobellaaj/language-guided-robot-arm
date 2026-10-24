@@ -40,10 +40,12 @@
     </model>
     <!-- Known-position grasp exercise: 4 cm cube, 50 g.
          Spawn 1 mm above the ground and let gravity settle it.
-         x is chosen for a feasible downward grasp with the current joint limits. -->
+         Downward grasp: base=0, shoulder=pi/3, elbow=2*pi/3.
+         x = 0.11 + 0.25*sin(pi/3); the revised shoulder pivot is at z=0.17 m.
+         Finger tips are nominally 15 mm above ground at this pose. -->
     <model name="red_block">
       <static>false</static>
-      <pose>0.23615045 0 0.021 0 0 0</pose>
+      <pose>0.326506350946 0 0.021 0 0 0</pose>
       <link name="block_link">
         <inertial>
           <mass>0.05</mass>
