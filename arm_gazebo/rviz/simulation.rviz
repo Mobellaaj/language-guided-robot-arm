@@ -44,6 +44,35 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Best Effort
       Normalize Range: true
+    - Class: rviz_default_plugins/Image
+      Name: Overhead Camera
+      Enabled: true
+      Topic:
+        Value: /overhead_camera/image_raw
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+    - Class: rviz_default_plugins/Image
+      Name: Red Detection
+      Enabled: true
+      Topic:
+        Value: /arm/perception/red/image
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/Marker
+      Name: Red Surface Position
+      Enabled: true
+      Marker Topic:
+        Value: /arm/perception/red/marker
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Namespaces:
+        red_surface: true
   Views:
     Current:
       Class: rviz_default_plugins/Orbit

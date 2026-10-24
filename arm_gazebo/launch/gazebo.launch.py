@@ -1,4 +1,6 @@
 from pathlib import Path
+import math
+import xml.etree.ElementTree as ET
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -18,6 +20,12 @@ def generate_launch_description():
         str(package_share / 'urdf' / 'arm.urdf.xacro'),
         mappings={'gazebo': 'true'},
     ).toxml()
+
+    # Read the fixed camera's position from the world so TF stays in sync.
+    world = ET.parse(simulation_share / 'worlds' / 'arm_world.sdf')
+    camera = world.find("world/model[@name='overhead_camera']")
+    camera_pose = camera.findtext('pose').split()
+    sensor_pose = camera.findtext('link/sensor/pose').split()
 
     return LaunchDescription([
         DeclareLaunchArgument('rviz', default_value='true',
@@ -42,6 +50,29 @@ def generate_launch_description():
             arguments=['-world', 'arm_world', '-name', 'learning_arm',
                        '-topic', '/robot_description', '-allow_renaming', 'false'],
             output='screen',
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='overhead_camera_mount_tf',
+            arguments=[
+                '--x', camera_pose[0], '--y', camera_pose[1], '--z', camera_pose[2],
+                '--roll', camera_pose[3], '--pitch', camera_pose[4], '--yaw', camera_pose[5],
+                '--frame-id', 'world', '--child-frame-id', 'overhead_camera_link',
+            ],
+            parameters=[{'use_sim_time': True}],
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='overhead_camera_optical_tf',
+            arguments=[
+                '--x', sensor_pose[0], '--y', sensor_pose[1], '--z', sensor_pose[2],
+                '--roll', str(-math.pi / 2), '--pitch', '0', '--yaw', str(-math.pi / 2),
+                '--frame-id', 'overhead_camera_link',
+                '--child-frame-id', 'overhead_camera_optical_frame',
+            ],
+            parameters=[{'use_sim_time': True}],
         ),
         Node(
             package='rviz2',
