@@ -37,7 +37,7 @@
     <xacro:macro name="position_controller" params="joint topic p i d effort">
         <gazebo>
             <plugin filename="gz-sim-joint-position-controller-system"
-                    name="gz::sim::systems::JointPositionController">
+                name="gz::sim::systems::JointPositionController">
                 <joint_name>${joint}</joint_name>
                 <topic>${topic}</topic>
                 <p_gain>${p}</p_gain>
@@ -53,22 +53,49 @@
     </xacro:macro>
 
     <xacro:position_controller joint="base_rotation_joint" topic="/arm/base/target"
-                                p="30" i="1" d="2" effort="10" />
+        p="30" i="1" d="2" effort="10" />
     <xacro:position_controller joint="shoulder_joint" topic="/arm/shoulder/target"
-                                p="100" i="2" d="5" effort="10" />
+        p="100" i="2" d="5" effort="10" />
     <xacro:position_controller joint="elbow_joint" topic="/arm/elbow/target"
-                                p="60" i="1" d="2" effort="5" />
+        p="60" i="1" d="2" effort="5" />
     <xacro:position_controller joint="wrist_pitch_joint" topic="/arm/wrist/target"
-                                p="20" i="0.5" d="1" effort="2" />
+        p="20" i="0.5" d="1" effort="2" />
     <xacro:position_controller joint="gripper_opening_joint" topic="/arm/gripper/target"
-                                p="200" i="0.5" d="2" effort="5" />
+        p="200" i="0.5" d="2" effort="5" />
     <xacro:position_controller joint="right_finger_joint" topic="/arm/gripper/target"
-                                p="200" i="0.5" d="2" effort="5" />
+        p="200" i="0.5" d="2" effort="5" />
 
     <gazebo>
         <plugin filename="gz-sim-joint-state-publisher-system"
-                name="gz::sim::systems::JointStatePublisher">
+            name="gz::sim::systems::JointStatePublisher">
             <topic>/model/learning_arm/joint_state</topic>
         </plugin>
+    </gazebo>
+
+    <!-- Sensor at the camera housing's front face. -->
+    <gazebo reference="camera_link">
+        <sensor name="wrist_camera" type="camera">
+            <pose>0.015 0 0 0 0 0</pose>
+            <always_on>true</always_on>
+            <update_rate>15</update_rate>
+            <topic>/arm/camera/image_raw</topic>
+
+            <camera>
+                <optical_frame_id>camera_optical_frame</optical_frame_id>
+                <camera_info_topic>/arm/camera/camera_info</camera_info_topic>
+                <horizontal_fov>1.0472</horizontal_fov>
+
+                <image>
+                    <width>640</width>
+                    <height>480</height>
+                    <format>R8G8B8</format>
+                </image>
+
+                <clip>
+                    <near>0.01</near>
+                    <far>5.0</far>
+                </clip>
+            </camera>
+        </sensor>
     </gazebo>
 </robot>

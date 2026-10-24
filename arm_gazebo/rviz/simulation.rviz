@@ -1,0 +1,59 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Global Options:
+    Fixed Frame: base_link
+    Background Color: 48; 48; 48
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 0.1
+      Plane Cell Count: 20
+      Reference Frame: <Fixed Frame>
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+        Depth: 1
+        Durability Policy: Transient Local
+        Reliability Policy: Reliable
+      Visual Enabled: true
+      Collision Enabled: false
+      Alpha: 1
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Show Axes: true
+      Show Names: true
+      Show Arrows: true
+      Marker Scale: 0.08
+    - Class: rviz_default_plugins/Image
+      Name: Wrist Camera
+      Enabled: true
+      Topic:
+        Value: /arm/camera/image_raw
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Normalize Range: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 1.3
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0.3
+      Pitch: 0.5
+      Yaw: 0.8
+Window Geometry:
+  Width: 1100
+  Height: 750
