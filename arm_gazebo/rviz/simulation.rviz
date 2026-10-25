@@ -73,6 +73,29 @@ Visualization Manager:
         Reliability Policy: Reliable
       Namespaces:
         red_surface: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: IK Candidate
+      Enabled: true
+      Marker Topic:
+        Value: /arm/control/ik_preview
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Namespaces:
+        ik_candidate: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Planned Motion
+      Enabled: true
+      Marker Topic:
+        Value: /arm/control/move_preview
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Namespaces:
+        planned_motion: true
+        planned_tool_path: true
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
