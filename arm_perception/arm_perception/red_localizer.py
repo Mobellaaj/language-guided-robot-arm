@@ -1,4 +1,4 @@
-"""Estimate a visible red surface point using a known horizontal world plane."""
+"""Estimate a visible colored surface point using a known horizontal world plane."""
 import cv2
 import numpy as np
 import rclpy
@@ -62,6 +62,11 @@ def translation(transform):
 class RedLocalizer(Node):
     def __init__(self):
         super().__init__('red_localizer')
+        self.declare_parameter('color', 'red')
+        self.color = self.get_parameter('color').value
+        if self.color not in ('red', 'green', 'blue'):
+            raise ValueError('color must be red, green, or blue')
+        topic_prefix = f'/arm/perception/{self.color}'
         self.declare_parameter('camera_info_topic', '/overhead_camera/camera_info')
         self.declare_parameter('plane_frame', 'world')
         self.declare_parameter('plane_height', 0.04)
@@ -78,15 +83,15 @@ class RedLocalizer(Node):
         self.valid = False
         self.buffer = Buffer()
         self.listener = TransformListener(self.buffer, self)
-        self.position_pub = self.create_publisher(PointStamped, '/arm/perception/red/position', 10)
-        self.marker_pub = self.create_publisher(Marker, '/arm/perception/red/marker', 10)
-        self.valid_pub = self.create_publisher(Bool, '/arm/perception/red/position_valid', 10)
+        self.position_pub = self.create_publisher(PointStamped, f'{topic_prefix}/position', 10)
+        self.marker_pub = self.create_publisher(Marker, f'{topic_prefix}/marker', 10)
+        self.valid_pub = self.create_publisher(Bool, f'{topic_prefix}/position_valid', 10)
         self.subscriptions_to_keep = [
             self.create_subscription(CameraInfo, self.get_parameter('camera_info_topic').value,
                                      self.on_info, qos_profile_sensor_data),
-            self.create_subscription(PointStamped, '/arm/perception/red/pixel_center',
+            self.create_subscription(PointStamped, f'{topic_prefix}/pixel_center',
                                      self.on_pixel, 10),
-            self.create_subscription(Bool, '/arm/perception/red/detected', self.on_detection, 10),
+            self.create_subscription(Bool, f'{topic_prefix}/detected', self.on_detection, 10),
         ]
         # Retry after TF has caught up with the image; never substitute latest TF.
         self.timer = self.create_timer(0.05, self.update_position)
@@ -109,7 +114,7 @@ class RedLocalizer(Node):
         if self.valid:
             marker = Marker()
             marker.header.frame_id = self.target_frame
-            marker.ns = 'red_surface'
+            marker.ns = f'{self.color}_surface'
             marker.id = 0
             marker.action = Marker.DELETE
             self.marker_pub.publish(marker)
@@ -153,14 +158,17 @@ class RedLocalizer(Node):
 
         marker = Marker()
         marker.header = output.header
-        marker.ns = 'red_surface'
+        marker.ns = f'{self.color}_surface'
         marker.id = 0
         marker.type = Marker.SPHERE
         marker.action = Marker.ADD
         marker.pose.position = output.point
         marker.pose.orientation.w = 1.0
         marker.scale.x = marker.scale.y = marker.scale.z = 0.015
-        marker.color.g = marker.color.b = marker.color.a = 1.0
+        marker.color.r = 1.0 if self.color == 'red' else 0.0
+        marker.color.g = 1.0 if self.color == 'green' else 0.0
+        marker.color.b = 1.0 if self.color == 'blue' else 0.0
+        marker.color.a = 1.0
         marker.lifetime = Duration(seconds=self.max_age).to_msg()
         self.marker_pub.publish(marker)
 

@@ -58,14 +58,8 @@
     </xacro:macro>
 
     <!-- Reusable visual colors; RGBA components range from 0 to 1. -->
-    <material name="gray">
-        <color rgba="0.5 0.5 0.5 1" />
-    </material>
-    <material name="orange">
-        <color rgba="1 0.4 0 1" />
-    </material>
-    <material name="blue">
-        <color rgba="0.1 0.3 0.8 1" />
+    <material name="black">
+        <color rgba="0.02 0.02 0.02 1" />
     </material>
 
     <!-- Massless kinematic root: avoids KDL's root-link inertia limitation.
@@ -83,7 +77,7 @@
             <geometry>
                 <cylinder radius="0.1" length="${base_height}" />
             </geometry>
-            <material name="gray" />
+            <material name="black" />
         </visual>
         <xacro:cylinder_physics mass="${base_mass}" radius="0.1"
             length="${base_height}" xyz="0 0 ${base_height / 2}" />
@@ -107,7 +101,7 @@
             <geometry>
                 <box size="0.28 0.08 ${pedestal_height}" />
             </geometry>
-            <material name="orange" />
+            <material name="black" />
         </visual>
         <xacro:box_physics mass="${pedestal_mass}" sx="0.28" sy="0.08"
             sz="${pedestal_height}" xyz="0.04 0 ${pedestal_height / 2}" />
@@ -129,7 +123,7 @@
                 <geometry>
                     <box size="0.04 0.012 0.05" />
                 </geometry>
-                <material name="gray" />
+                <material name="black" />
             </visual>
             <xacro:box_physics mass="0.03" sx="0.04" sy="0.012" sz="0.05"
                 xyz="0 0 0" />
@@ -156,7 +150,7 @@
             <geometry>
                 <cylinder radius="0.025" length="${upper_arm_length}" />
             </geometry>
-            <material name="blue" />
+            <material name="black" />
         </visual>
         <xacro:cylinder_physics
             mass="${upper_arm_mass}"
@@ -180,7 +174,7 @@
             <geometry>
                 <cylinder radius="0.02" length="${forearm_length}" />
             </geometry>
-            <material name="orange" />
+            <material name="black" />
         </visual>
         <xacro:cylinder_physics
             mass="${forearm_mass}"
@@ -206,7 +200,7 @@
             <geometry>
                 <box size="0.06 0.10 ${palm_height}" />
             </geometry>
-            <material name="gray" />
+            <material name="black" />
         </visual>
         <xacro:box_physics mass="${palm_mass}" sx="0.06" sy="0.10"
             sz="${palm_height}" xyz="0 0 ${palm_height / 2}" />
@@ -224,7 +218,7 @@
             <geometry>
                 <box size="0.03 0.04 0.02" />
             </geometry>
-            <material name="gray" />
+            <material name="black" />
         </visual>
 
         <xacro:box_physics
@@ -261,7 +255,7 @@
             <geometry>
                 <box size="0.02 ${finger_thickness} ${finger_length}" />
             </geometry>
-            <material name="blue" />
+            <material name="black" />
         </visual>
         <xacro:box_physics mass="${finger_mass}" sx="0.02" sy="${finger_thickness}"
             sz="${finger_length}" xyz="0 0 ${finger_length / 2}" />
@@ -288,7 +282,7 @@
             <geometry>
                 <box size="0.02 ${finger_thickness} ${finger_length}" />
             </geometry>
-            <material name="blue" />
+            <material name="black" />
         </visual>
         <xacro:box_physics mass="${finger_mass}" sx="0.02" sy="${finger_thickness}"
             sz="${finger_length}" xyz="0 0 ${finger_length / 2}" />

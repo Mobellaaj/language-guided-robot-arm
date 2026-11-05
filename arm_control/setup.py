@@ -25,7 +25,8 @@ setup(
     entry_points={
         'console_scripts': [
             'ik_preview = arm_control.ik_preview:main',
-            'move_to_red = arm_control.move_to_red:main',
+            'move_to_color = arm_control.move_to_color:main',
+            'arm_command = arm_control.arm_command:main',
         ],
     },
 )
