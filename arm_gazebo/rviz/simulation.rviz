@@ -27,6 +27,15 @@ Visualization Manager:
       Visual Enabled: true
       Collision Enabled: false
       Alpha: 1
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Planning Obstacle
+      Enabled: true
+      Topic:
+        Value: /arm/control/planning_scene
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
     - Class: rviz_default_plugins/TF
       Name: TF
       Enabled: true
@@ -54,29 +63,41 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Best Effort
     - Class: rviz_default_plugins/Image
-      Name: Red Detection
+      Name: Object Detection
       Enabled: true
       Topic:
-        Value: /arm/perception/red/image
+        Value: /arm/perception/scene/image
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
-        Reliability Policy: Reliable
-    - Class: rviz_default_plugins/Marker
-      Name: Red Surface Position
+        Reliability Policy: Best Effort
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Detected Objects
       Enabled: true
-      Marker Topic:
-        Value: /arm/perception/red/marker
+      Topic:
+        Value: /arm/perception/objects/markers
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
       Namespaces:
-        red_surface: true
+        object_surfaces: true
+        platform_slots: true
+    - Class: rviz_default_plugins/Marker
+      Name: Selected Target
+      Enabled: true
+      Topic:
+        Value: /arm/control/selected_target
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Namespaces:
+        selected_target: true
     - Class: rviz_default_plugins/MarkerArray
       Name: IK Candidate
       Enabled: true
-      Marker Topic:
+      Topic:
         Value: /arm/control/ik_preview
         Depth: 5
         Durability Policy: Volatile
@@ -87,7 +108,7 @@ Visualization Manager:
     - Class: rviz_default_plugins/MarkerArray
       Name: Planned Motion
       Enabled: true
-      Marker Topic:
+      Topic:
         Value: /arm/control/move_preview
         Depth: 5
         Durability Policy: Volatile
@@ -95,6 +116,7 @@ Visualization Manager:
         Reliability Policy: Reliable
       Namespaces:
         planned_motion: true
+        carried_block: true
         planned_tool_path: true
   Views:
     Current:

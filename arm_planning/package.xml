@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>arm_planning</name><version>0.0.0</version>
+  <description>MoveIt collision checking and OMPL paths for the four-joint learning arm.</description>
+  <maintainer email="aziiizbelaj@gmail.com">bellaaj</maintainer>
+  <license>BSD-3-Clause</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <build_depend>python3-dev</build_depend>
+  <depend>pybind11_vendor</depend><depend>moveit_core</depend>
+  <depend>moveit_msgs</depend><depend>geometric_shapes</depend>
+  <depend>geometry_msgs</depend><depend>shape_msgs</depend>
+  <depend>rclcpp</depend><depend>urdf</depend><depend>srdfdom</depend><depend>ompl</depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

@@ -8,11 +8,13 @@
   <license>BSD-3-Clause</license>
 
   <depend>rclpy</depend>
+  <exec_depend>arm_interfaces</exec_depend>
   <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
 
   <exec_depend>python3-opencv</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>vision_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
 
   <exec_depend>tf2_ros</exec_depend>

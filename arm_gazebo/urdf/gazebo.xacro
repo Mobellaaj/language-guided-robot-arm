@@ -60,10 +60,13 @@
         p="60" i="1" d="2" effort="5" />
     <xacro:position_controller joint="wrist_pitch_joint" topic="/arm/wrist/target"
         p="20" i="0.5" d="1" effort="2" />
+    <!-- Finger contact deliberately prevents reaching the closed position.
+         Disable integral action so squeezing a cube cannot build up a
+         closing bias that delays release. P/D and force limits remain. -->
     <xacro:position_controller joint="gripper_opening_joint" topic="/arm/gripper/target"
-        p="200" i="0.5" d="2" effort="5" />
+        p="200" i="0" d="2" effort="5" />
     <xacro:position_controller joint="right_finger_joint" topic="/arm/gripper/target"
-        p="200" i="0.5" d="2" effort="5" />
+        p="200" i="0" d="2" effort="5" />
 
     <gazebo>
         <plugin filename="gz-sim-joint-state-publisher-system"

@@ -28,6 +28,8 @@ setup(
         'console_scripts': [
             'red_detector = arm_perception.red_detector:main',
             'red_localizer = arm_perception.red_localizer:main',
+            'object_detector = arm_perception.object_detector:main',
+            'object_localizer = arm_perception.object_localizer:main',
         ],
     },
 )

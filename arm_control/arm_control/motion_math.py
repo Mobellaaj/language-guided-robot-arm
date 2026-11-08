@@ -49,3 +49,16 @@ def check_ground(model, angles, gripper):
                 raise ValueError('Unsupported collision shape in the floor check')
             if pose[2,3]-extent < -0.002:
                 raise ValueError(f'Path crosses the floor at {link.get("name")}')
+
+
+def check_finger_ground(model, angles, gripper):
+    """Keep at least 1 mm under the measured finger collision geometry."""
+    poses = model.link_poses(angles, gripper)
+    for name in ('left_finger_link', 'right_finger_link'):
+        link = model.robot.find(f"link[@name='{name}']")
+        for collision in link.findall('collision'):
+            pose = poses[name] @ origin_matrix(collision.find('origin'))
+            half = np.array([float(v) for v in collision.find('geometry/box').get('size').split()])/2
+            clearance = pose[2, 3]-np.abs(pose[2, :3]) @ half
+            if clearance < 0.001:
+                raise ValueError(f'{name} is less than 1 mm above the floor; holding before contact.')

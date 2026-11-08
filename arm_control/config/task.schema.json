@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Learning arm task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["action"],
+  "properties": {
+    "action": {"enum": ["pick", "place", "pick_and_place"]},
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": {"enum": ["red", "green", "blue", null]},
+        "selector": {
+          "enum": ["unique", "leftmost", "rightmost", "left_of_robot", "right_of_robot", "nearest", "farthest"],
+          "description": "Left/right use base_link Y; nearest/farthest use XY distance from the base origin."
+        },
+        "source": {"enum": ["floor", "platform"]}
+      }
+    },
+    "destination": {"enum": ["platform", "floor"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"action": {"enum": ["place", "pick_and_place"]}}},
+      "then": {"required": ["destination"]},
+      "else": {"not": {"required": ["destination"]}}
+    }
+  ]
+}

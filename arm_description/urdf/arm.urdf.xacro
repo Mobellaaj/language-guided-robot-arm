@@ -62,6 +62,33 @@
         <color rgba="0.02 0.02 0.02 1" />
     </material>
 
+    <!-- Leave contact collisions unnamed so Gazebo applies the link's friction
+         settings to every generated collision during URDF-to-SDF conversion. -->
+    <xacro:macro name="finger_contact" params="x z length">
+        <collision>
+            <origin xyz="${x} 0 ${z}" rpy="0 0 0" />
+            <geometry><box size="0.008 ${finger_thickness} ${length}" /></geometry>
+        </collision>
+    </xacro:macro>
+
+    <!-- Four contact patches, separated across and along the finger, support
+         the cube against rocking during transfer. Visual and inertia still
+         approximate a uniform 2 x 1.2 x 6 cm finger body. -->
+    <xacro:macro name="finger_physics">
+        <xacro:finger_contact x="-0.006" z="0.02" length="0.04" />
+        <xacro:finger_contact x="-0.006" z="0.0525" length="0.015" />
+        <xacro:finger_contact x="0.006" z="0.02" length="0.04" />
+        <xacro:finger_contact x="0.006" z="0.0525" length="0.015" />
+        <inertial>
+            <origin xyz="0 0 ${finger_length / 2}" rpy="0 0 0" />
+            <mass value="${finger_mass}" />
+            <inertia ixx="${finger_mass * (finger_thickness ** 2 + finger_length ** 2) / 12}"
+                iyy="${finger_mass * (0.02 ** 2 + finger_length ** 2) / 12}"
+                izz="${finger_mass * (0.02 ** 2 + finger_thickness ** 2) / 12}"
+                ixy="0" ixz="0" iyz="0" />
+        </inertial>
+    </xacro:macro>
+
     <!-- Massless kinematic root: avoids KDL's root-link inertia limitation.
          This reference frame does NOT fix the robot to the Gazebo world. -->
     <link name="base_footprint" />
@@ -257,8 +284,7 @@
             </geometry>
             <material name="black" />
         </visual>
-        <xacro:box_physics mass="${finger_mass}" sx="0.02" sy="${finger_thickness}"
-            sz="${finger_length}" xyz="0 0 ${finger_length / 2}" />
+        <xacro:finger_physics />
     </link>
 
     <joint name="right_finger_joint" type="prismatic">
@@ -284,8 +310,7 @@
             </geometry>
             <material name="black" />
         </visual>
-        <xacro:box_physics mass="${finger_mass}" sx="0.02" sy="${finger_thickness}"
-            sz="${finger_length}" xyz="0 0 ${finger_length / 2}" />
+        <xacro:finger_physics />
     </link>
 
     <!-- Reference halfway along the fingers, centered in the opening. -->

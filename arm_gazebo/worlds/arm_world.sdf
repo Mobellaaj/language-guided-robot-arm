@@ -5,6 +5,11 @@
     <physics name="physics" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1</real_time_factor>
+      <!-- DART dynamics with Bullet contact detection: steadier box contacts
+           while the parallel gripper turns with a carried cube. -->
+      <dart>
+        <collision_detector>bullet</collision_detector>
+      </dart>
     </physics>
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
@@ -83,11 +88,26 @@
         </visual>
       </link>
     </model>
+    <!-- A visual floor marking, not a raised support or collision object.
+         Two return slots are centred at x=0.24/0.32, y=0.23, z=0. -->
+    <model name="floor_placement_area">
+      <static>true</static>
+      <pose>0.28 0.23 0.0003 0 0 0</pose>
+      <link name="marking">
+        <visual name="area">
+          <geometry><plane><normal>0 0 1</normal><size>0.16 0.14</size></plane></geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
     <!-- Known-position grasp exercise: 4 cm cube, 50 g.
          Spawn 1 mm above the ground and let gravity settle it.
-         Downward grasp: base=0, shoulder=pi/3, elbow=2*pi/3.
          x = 0.11 + 0.25*sin(pi/3); the revised shoulder pivot is at z=0.17 m.
-         Finger tips are nominally 15 mm above ground at this pose. -->
+         The pick sequence keeps finger tips nominally 5 mm above ground. -->
     <model name="red_block">
       <static>false</static>
       <pose>0.326506350946 0 0.021 0 0 0</pose>
@@ -217,6 +237,181 @@
           <material>
             <ambient>0.05 0.1 0.85 1</ambient>
             <diffuse>0.05 0.1 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Extra cubes for same-color selection: +Y is robot-left. -->
+    <model name="red_block_2">
+      <static>false</static>
+      <pose>0.39 0.04 0.021 0 0 0</pose>
+      <link name="block_link">
+        <inertial>
+          <mass>0.05</mass>
+          <inertia>
+            <ixx>0.0000133333333333333</ixx>
+            <iyy>0.0000133333333333333</iyy>
+            <izz>0.0000133333333333333</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="block_collision">
+          <geometry>
+            <box>
+              <size>0.04 0.04 0.04</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="block_visual">
+          <geometry>
+            <box>
+              <size>0.04 0.04 0.04</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.05 0.05 1</ambient>
+            <diffuse>0.8 0.05 0.05 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="green_block_2">
+      <static>false</static>
+      <pose>0.39 0.125 0.021 0 0 0</pose>
+      <link name="block_link">
+        <inertial>
+          <mass>0.05</mass>
+          <inertia>
+            <ixx>0.0000133333333333333</ixx>
+            <iyy>0.0000133333333333333</iyy>
+            <izz>0.0000133333333333333</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="block_collision">
+          <geometry>
+            <box>
+              <size>0.04 0.04 0.04</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="block_visual">
+          <geometry>
+            <box>
+              <size>0.04 0.04 0.04</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.05 0.8 0.05 1</ambient>
+            <diffuse>0.05 0.8 0.05 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="blue_block_2">
+      <static>false</static>
+      <pose>0.39 -0.045 0.021 0 0 0</pose>
+      <link name="block_link">
+        <inertial>
+          <mass>0.05</mass>
+          <inertia>
+            <ixx>0.0000133333333333333</ixx>
+            <iyy>0.0000133333333333333</iyy>
+            <izz>0.0000133333333333333</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="block_collision">
+          <geometry>
+            <box>
+              <size>0.04 0.04 0.04</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="block_visual">
+          <geometry>
+            <box>
+              <size>0.04 0.04 0.04</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.05 0.1 0.85 1</ambient>
+            <diffuse>0.05 0.1 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Robot-right is negative base_link Y (world and base_link align).
+         Fixed brown placement platform: 16 x 14 cm; top surface z=0.02 m.
+         Its center is within the current downward IK approach workspace. -->
+    <model name="placement_platform">
+      <static>true</static>
+      <pose>0.28 -0.23 0.01 0 0 0</pose>
+      <link name="platform_link">
+        <collision name="platform_collision">
+          <geometry><box><size>0.16 0.14 0.02</size></box></geometry>
+          <surface>
+            <friction><ode><mu>1</mu><mu2>1</mu2></ode></friction>
+          </surface>
+        </collision>
+        <visual name="platform_visual">
+          <geometry><box><size>0.16 0.14 0.02</size></box></geometry>
+          <material>
+            <ambient>0.35 0.20 0.08 1</ambient>
+            <diffuse>0.35 0.20 0.08 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Fixed grey barrier between the floor cubes and placement platform.
+         Its exact pose and size are also read by perception.launch.py. -->
+    <model name="planning_obstacle">
+      <static>true</static>
+      <pose>0.29 -0.155 0.07 0 0 0</pose>
+      <link name="obstacle_link">
+        <collision name="obstacle_collision">
+          <geometry><box><size>0.12 0.004 0.14</size></box></geometry>
+        </collision>
+        <visual name="obstacle_visual">
+          <geometry><box><size>0.12 0.004 0.14</size></box></geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.5 0.5 0.5 1</diffuse>
           </material>
         </visual>
       </link>
