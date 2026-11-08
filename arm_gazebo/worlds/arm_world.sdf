@@ -380,7 +380,7 @@
          Its center is within the current downward IK approach workspace. -->
     <model name="placement_platform">
       <static>true</static>
-      <pose>0.28 -0.23 0.01 0 0 0</pose>
+      <pose>0.26 -0.25 0.01 0 0 0</pose>
       <link name="platform_link">
         <collision name="platform_collision">
           <geometry><box><size>0.16 0.14 0.02</size></box></geometry>

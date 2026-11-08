@@ -58,7 +58,7 @@ def planner_for(world):
 def test_blocked_straight_transfer_gets_a_downward_collision_free_detour(world):
     planner, objects = planner_for(world)
     start = solve_downward_ik(.327,0.,.15)[0]
-    goal = solve_downward_ik(.24,-.23,.15)[0]
+    goal = solve_downward_ik(*world[1].slots['slot_1'][:2],.15)[0]
     held = dict(source=(.327,0.,.04), offset=.015)
     with pytest.raises(ValueError, match='box_1'):
         planner.validate([start,goal],.02,objects,held=held)
@@ -109,7 +109,8 @@ def test_all_pickups_and_both_slots_with_the_barrier(world, index):
     pick.check_current_scene()
     for slot in layout.slots:
         n.held = dict(color=color,source=(x,y,z),offset=.015,gap=.04,fingers=(.02,.02))
-        extra = [('red',.24,-.23,.06)] if slot == 'slot_2' else []
+        sx,sy,support = layout.slots['slot_1']
+        extra = [('red',sx,sy,support+layout.cube)] if slot == 'slot_2' else []
         n.objects = observations(entries+extra)
         n.platform = SimpleNamespace(available=lambda slot=slot:[slot],reserve=lambda name:None)
         place = PlaceSequence(n)
@@ -164,12 +165,37 @@ def test_platform_pickup_and_floor_return_with_the_known_obstacle(world, source_
 
 
 @pytest.mark.parametrize('slot', ['slot_1','slot_2'])
-@pytest.mark.parametrize('dx', [-.003,.003])
-def test_platform_grasp_has_clearance_for_small_camera_position_bias(world, slot, dx):
+@pytest.mark.parametrize('dx', [-.008,.008])
+@pytest.mark.parametrize('dy', [-.015,.015])
+def test_platform_grasp_has_room_for_placement_and_camera_error(world, slot, dx, dy):
     from arm_control.pick_sequence import vertical_path
     planner, objects = planner_for(world)
     x,y,support = world[1].slots[slot]
-    # The overhead bbox centre can shift a few millimetres toward the camera.
-    x,y = x+dx,y+.003
+    # Include both measured placement drift and overhead-camera centre bias.
+    x,y = x+dx,y+dy
     above = solve_downward_ik(x,y,support+.04+.1)[0]
     planner.validate(vertical_path(above,support+.035),.035,objects)
+
+
+def test_a_geometrically_clear_pose_can_be_too_close_for_carrying(world):
+    planner, objects = planner_for(world)
+    held = dict(source=(.24,-.23,.06), offset=.015)
+    # Cube bottom is 10 mm above the physical barrier. The old 8 mm margin
+    # accepted this pose, leaving little room for measured tracking/grasp error.
+    close = solve_downward_ik(.29,-.155,.185)[0]
+    planner.validate([close],.02,objects,held=held)
+    with pytest.raises(ValueError,match='collision'):
+        planner.validate([close],.02,objects,held=held,transfer=True)
+
+
+def test_carrying_search_and_recheck_use_the_larger_margin(world):
+    planner, objects = planner_for(world)
+    held = dict(source=(.24,-.23,.06),offset=.015)
+    start = solve_downward_ik(.24,-.23,.15)[0]
+    goal = solve_downward_ik(.32,.23,.15)[0]
+    path = planner.plan(start,goal,.02,objects,held=held,keep_down=True)
+    planner.validate(path,.02,objects,held=held,transfer=True)
+    # A route that fits only the approach margin must also be rejected on recheck.
+    close = solve_downward_ik(.29,-.155,.185)[0]
+    with pytest.raises(ValueError,match='collide|collision'):
+        planner.validate([start,close,goal],.02,objects,held=held,transfer=True)

@@ -7,15 +7,15 @@ import numpy as np
 
 from arm_perception.red_localizer import intersect_plane
 
-DEFAULTS = dict(platform_x=0.28, platform_y=-0.23, platform_size_x=0.16,
+DEFAULTS = dict(platform_x=0.26, platform_y=-0.25, platform_size_x=0.16,
                 platform_size_y=0.14, platform_top=0.02, cube_size=0.04,
                 floor_x=0.28, floor_y=0.23, floor_size_x=0.16, floor_size_y=0.14)
 
 
 @dataclass
 class PlatformLayout:
-    x: float = 0.28
-    y: float = -0.23
+    x: float = 0.26
+    y: float = -0.25
     sx: float = 0.16
     sy: float = 0.14
     top: float = 0.02

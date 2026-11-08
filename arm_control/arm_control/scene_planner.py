@@ -7,6 +7,9 @@ from ament_index_python.packages import get_package_share_directory
 from visualization_msgs.msg import Marker, MarkerArray
 from arm_planning import Planner
 
+APPROACH_CLEARANCE = 0.008
+TRANSFER_CLEARANCE = 0.020
+
 
 class ScenePlanner:
     def __init__(self, model, layout, obstacle_boxes=()):
@@ -42,13 +45,14 @@ class ScenePlanner:
                 centres.append(centre)
         return centres
 
-    def scene(self, objects, held=None, removed=None, extra=()):
+    def scene(self, objects, held=None, removed=None, extra=(), transfer=False):
         # Include the platform and the fixed obstacle read from the actual world.
         layout = self.layout
         boxes = [(layout.x, layout.y, layout.top/2, layout.sx, layout.sy, layout.top)]
-        # 8 mm extra clearance around the test barrier, in addition to the
-        # native checker's 2 mm robot padding, allows for tracking error.
-        boxes += [(*b[:3], *(v+0.016 for v in b[3:])) for b in self.obstacle_boxes]
+        # Carrying needs room for tracking lag and movement inside the grasp.
+        # Keep the smaller approach margin for close pickup/release poses.
+        clearance = TRANSFER_CLEARANCE if transfer else APPROACH_CLEARANCE
+        boxes += [(*b[:3], *(v+2*clearance for v in b[3:])) for b in self.obstacle_boxes]
         centres = list(self.snapshot)
         for point in self.observed_centres(objects):
             near = next((i for i, old in enumerate(centres) if math.dist(old, point) < .02), None)
@@ -67,12 +71,12 @@ class ScenePlanner:
              removed=None, extra=()):
         if held is not None and not keep_down:
             raise ValueError('Carrying paths must keep the gripper pointing down.')
-        boxes, centres, offset = self.scene(objects, held, removed, extra)
+        boxes, centres, offset = self.scene(objects, held, removed, extra, transfer=held is not None)
         return self.engine.plan(start, goal, finger, boxes, centres,
                                 self.layout.cube, offset, keep_down)
 
-    def validate(self, path, finger, objects, held=None, removed=None, extra=()):
-        boxes, centres, offset = self.scene(objects, held, removed, extra)
+    def validate(self, path, finger, objects, held=None, removed=None, extra=(), transfer=False):
+        boxes, centres, offset = self.scene(objects, held, removed, extra, transfer=transfer)
         self.engine.validate(path, finger, boxes, centres, self.layout.cube, offset)
 
     def validate_fingers(self, q, before, after, objects, held=None, removed=None, extra=()):

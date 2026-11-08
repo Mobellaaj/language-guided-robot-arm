@@ -73,7 +73,7 @@ class PlaceSequence(PickSequence):
             extra = [] if carrying else placed
             path = stage['path'] if 'path' in stage else [stage['pose']]
             n.planner.validate(path, stage['finger'], n.objects, held=payload,
-                               removed=held['source'], extra=extra)
+                               removed=held['source'], extra=extra, transfer=stage['name'] == 'transfer')
             if stage['name'] == 'open':
                 n.planner.validate_fingers(stage['pose'], stage['finger'], stage['end_finger'],
                                            n.objects, held=held)
