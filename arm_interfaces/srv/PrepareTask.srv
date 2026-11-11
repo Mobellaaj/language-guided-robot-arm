@@ -2,5 +2,7 @@ string task_json
 ---
 bool success
 bool needs_clarification
+# Only perception-readiness failures may be retried automatically.
+bool retryable
 string message
 string normalized_json

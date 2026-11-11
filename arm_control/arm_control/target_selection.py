@@ -1,5 +1,6 @@
 """Robot-relative selection rules; frame-local detections are not tracked IDs."""
 import math
+from arm_control.errors import PerceptionNotReady
 
 COLORS = ('red', 'green', 'blue')
 SIDES = ('unique', 'leftmost', 'rightmost', 'left_of_robot', 'right_of_robot', 'nearest', 'farthest')
@@ -51,7 +52,7 @@ def choose_object(objects, color=None, selector='unique', source='floor', layout
         candidates = [(c,p) for c,p in candidates if sign*p[1] > .005]
     description = f'{color} ' if color else ''
     if not candidates:
-        raise ValueError(f'No visible {description}{source} cube matches {selector}. Return to observation.')
+        raise PerceptionNotReady(f'No visible {description}{source} cube matches {selector}. Return to observation.')
     if selector in ('unique', 'left_of_robot', 'right_of_robot'):
         if len(candidates) != 1:
             raise AmbiguousTarget(f'Ambiguous: {len(candidates)} {description}{source} cubes match. '

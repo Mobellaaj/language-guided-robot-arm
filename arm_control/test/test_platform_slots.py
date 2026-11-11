@@ -5,6 +5,7 @@ from builtin_interfaces.msg import Time
 from geometry_msgs.msg import Point
 from arm_interfaces.msg import PlatformSlot, PlatformState
 from arm_control.platform_manager import PlatformManager
+from arm_control.errors import PerceptionNotReady
 from arm_perception.platform_geometry import PlatformLayout
 
 
@@ -35,7 +36,7 @@ def test_choose_another_slot_when_first_is_occupied():
 def test_full_or_hidden_platform_has_no_available_slot(slots):
     state = manager()
     observed(state, slots)
-    with pytest.raises(ValueError, match='No confirmed empty'):
+    with pytest.raises(ValueError):
         state.available()
 
 
@@ -101,3 +102,27 @@ def test_floor_verification_requires_a_floor_level_cube_and_matching_color():
     assert not floor.verified('slot_1','red')
     objects.detections[0].results[0].pose.pose.position.z = .04
     assert not floor.verified('slot_1','blue')
+
+
+def test_unknown_or_unstable_empty_slots_are_temporary_but_full_or_reserved_are_not():
+    state = manager()
+    observed(state,(PlatformSlot.UNKNOWN,PlatformSlot.UNKNOWN))
+    with pytest.raises(PerceptionNotReady):
+        state.available()
+    message = state.message
+    message.header.stamp = Time(sec=9,nanosec=950000000)
+    for slot in message.slots:
+        slot.state = PlatformSlot.EMPTY
+    state.update(message)  # One fresh empty sample is not yet stable.
+    with pytest.raises(PerceptionNotReady):
+        state.available()
+    observed(state,(PlatformSlot.OCCUPIED,PlatformSlot.OCCUPIED))
+    with pytest.raises(ValueError) as full:
+        state.available()
+    assert not isinstance(full.value,PerceptionNotReady)
+    observed(state,(PlatformSlot.EMPTY,PlatformSlot.EMPTY))
+    state.reserve('slot_1')
+    state.reserve('slot_2')
+    with pytest.raises(ValueError) as reserved:
+        state.available()
+    assert not isinstance(reserved.value,PerceptionNotReady)

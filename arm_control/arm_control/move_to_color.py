@@ -30,7 +30,7 @@ from arm_control.gripper_control import GripperControl
 from arm_control.target_selection import COLORS, SIDES, choose_target, match_selected
 from arm_control.ik_solver import solve_downward_ik, forward_kinematics
 from arm_control.ik_visualization import PreviewModel
-from arm_control.motion_math import JOINTS, TOPICS, check_limits
+from arm_control.motion_math import JOINTS, TOPICS, check_limits, UNLOADED_SPEEDS, UNLOADED_MIN_DURATION
 
 
 class MoveToColor(Node):
@@ -356,7 +356,7 @@ class MoveToColor(Node):
         return self.planner.plan(start, goal, gripper, self.objects)
 
     def store_plan(self, start, goal, gripper, path, response, kind, surface=None):
-        duration = path_duration(path, minimum=8.0, tool_speed=None)
+        duration = path_duration(path, minimum=UNLOADED_MIN_DURATION, tool_speed=None, joint_speeds=UNLOADED_SPEEDS)
         self.plan = dict(start=start, goal=goal, surface=surface,
                          target=forward_kinematics(goal), kind=kind,
                          gripper=gripper, fingers=tuple(self.gripper.positions),

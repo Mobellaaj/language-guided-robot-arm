@@ -103,7 +103,7 @@ def test_all_pickups_and_both_slots_with_the_barrier(world, index):
     color,x,y,z = entries[index]
     n = SimpleNamespace(model=model,layout=layout,planner=planner,objects=objects,
                         clearance=.1,observation_joints=(0.,0.,0.,0.),get_clock=lambda:Clock(),
-                        gripper=SimpleNamespace(opened=.035,positions=(.02,.02),hold_problem=lambda *args:''))
+                        gripper=SimpleNamespace(opened=.035,closed=0.,positions=(.02,.02),hold_problem=lambda *args:''))
     pick = PickSequence(n)
     program = pick.prepare((x,y,z),(0.,0.,0.,0.),0.)
     pick.check_current_scene()
@@ -147,7 +147,7 @@ def test_platform_pickup_and_floor_return_with_the_known_obstacle(world, source_
     planner.capture(objects)
     n = SimpleNamespace(model=model,layout=layout,planner=planner,objects=objects,
                         clearance=.1,observation_joints=(0.,0.,0.,0.),get_clock=lambda:Clock(),
-                        gripper=SimpleNamespace(opened=.035,positions=(.02,.02),hold_problem=lambda *args:''))
+                        gripper=SimpleNamespace(opened=.035,closed=0.,positions=(.02,.02),hold_problem=lambda *args:''))
     pick = PickSequence(n)
     program = pick.prepare(surface,(0.,0.,0.,0.),.035,source='platform')
     pick.check_current_scene()

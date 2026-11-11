@@ -12,6 +12,7 @@ from arm_perception.platform_geometry import PlatformLayout
 from arm_control.target_selection import AmbiguousTarget, choose_object
 from arm_control.task_request import ClarificationRequired, resolve_action, validate_task
 from arm_control.task_runner import TaskRunner
+from arm_control.errors import PerceptionNotReady
 
 
 def objects(*entries):
@@ -32,7 +33,7 @@ COMBINED = json.dumps(dict(action='pick_and_place',object=dict(color='red',selec
 
 
 def response():
-    return SimpleNamespace(success=False,needs_clarification=False,message='',normalized_json='')
+    return SimpleNamespace(success=False,needs_clarification=False,retryable=False,message='',normalized_json='')
 
 
 class Controller:
@@ -309,3 +310,46 @@ def test_unknown_destination_is_rejected_and_full_floor_prevents_pickup():
     task['destination'] = 'floor'
     answer = n.task.prepare(json.dumps(task),response())
     assert not answer.success and 'floor slot' in answer.message and not n.calls
+
+
+@pytest.mark.parametrize('kind', ['objects','target','slots'])
+def test_only_temporary_perception_failures_are_retryable(kind):
+    n = Controller()
+    if kind == 'objects':
+        n.scene_problem = 'Object list is not current.'
+    elif kind == 'target':
+        n.objects = objects()
+    else:
+        def hidden():
+            raise PerceptionNotReady('Waiting for a visibly empty platform slot.')
+        n.platform.available = hidden
+    reply = n.task.prepare(COMBINED,response())
+    assert not reply.success and reply.retryable and not reply.needs_clarification
+    assert n.task.state == 'not_ready' and n.plan is None and not n.calls
+
+
+def test_ambiguity_full_destination_and_invalid_task_are_not_retryable():
+    n = Controller()
+    ambiguous = n.task.prepare('{"action":"pick","object":{"color":"red"}}',response())
+    assert ambiguous.needs_clarification and not ambiguous.retryable
+    n.slots_ready = False
+    full = n.task.prepare(COMBINED,response())
+    assert not full.success and not full.retryable
+    bad = n.task.prepare('{"action":"pick","joints":[1,2,3,4]}',response())
+    assert not bad.success and not bad.retryable and n.plan is None
+
+
+@pytest.mark.parametrize('kind', ['objects','slots'])
+def test_placing_a_held_cube_has_the_same_readiness_wait(kind):
+    n = Controller()
+    held = dict(color='red',source=(.33,0.,.04),gap=.04,fingers=(.02,.02))
+    n.held = held
+    if kind == 'objects':
+        n.scene_problem = 'Object list is not current.'
+    else:
+        def hidden():
+            raise PerceptionNotReady('Waiting for an empty floor slot.')
+        n.floor.available = hidden
+    reply = n.task.prepare('{"action":"place","destination":"floor"}',response())
+    assert reply.retryable and not reply.success
+    assert n.held is held and n.plan is None and not n.calls

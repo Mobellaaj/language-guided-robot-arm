@@ -1,6 +1,7 @@
 """Use fresh observed slot occupancy; keep uncertain releases reserved."""
 import math
 from arm_interfaces.msg import PlatformSlot
+from arm_control.errors import PerceptionNotReady
 
 
 class PlatformManager:
@@ -27,10 +28,12 @@ class PlatformManager:
                 self.stability[slot.name] = (key, previous[1], stamp, previous[3]+1)
 
     def fresh_slots(self):
-        if self.message is None or self.message.header.frame_id != 'base_link':
+        if self.message is None:
+            raise PerceptionNotReady(f'Waiting for {self.surface} observations in base_link.')
+        if self.message.header.frame_id != 'base_link':
             raise ValueError(f'Need {self.surface} observations in base_link. Start the combined launch.')
         if not -0.05 <= self.node.age(self.message.header.stamp) <= 0.5:
-            raise ValueError(f'{self.surface.capitalize()} observations are stale. Check camera visibility.')
+            raise PerceptionNotReady(f'{self.surface.capitalize()} observations are stale. Check camera visibility.')
         slots = {slot.name: slot for slot in self.message.slots}
         if set(slots) != set(self.slots):
             raise ValueError(f'{self.surface.capitalize()} slot layout does not match perception.')
@@ -54,6 +57,11 @@ class PlatformManager:
         names = [name for name in self.slots if name not in self.reserved
                  and slots[name].state == PlatformSlot.EMPTY and self.stable(name)]
         if not names:
+            if any(name not in self.reserved and
+                   (slot.state == PlatformSlot.UNKNOWN or
+                    (slot.state == PlatformSlot.EMPTY and not self.stable(name)))
+                   for name, slot in slots.items()):
+                raise PerceptionNotReady(f'Waiting for a visibly empty {self.surface} slot to become stable.')
             raise ValueError(f'No confirmed empty {self.surface} slot. It may be full, hidden, or reserved. '
                              f'Check camera visibility and run inspect {self.surface}.')
         return names

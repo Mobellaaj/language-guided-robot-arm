@@ -11,7 +11,13 @@ from rclpy.duration import Duration
 from visualization_msgs.msg import Marker
 
 from arm_control.ik_solver import forward_kinematics, solve_downward_ik
-from arm_control.motion_math import SPEEDS, check_ground, check_limits, interpolate, check_finger_ground
+from arm_control.motion_math import (
+    SPEEDS, UNLOADED_SPEEDS, UNLOADED_MIN_DURATION,
+    check_ground, check_limits, interpolate, check_finger_ground,
+)
+from arm_control.gripper_control import (
+    finger_motion_duration, POSITION_SETTLE_TIME, CONTACT_SETTLE_TIME,
+)
 
 
 def sample_path(path, fraction):
@@ -32,11 +38,11 @@ def vertical_path(start, end_z):
     return path
 
 
-def path_duration(path, minimum=4.0, tool_speed=0.02):
+def path_duration(path, minimum=4.0, tool_speed=0.02, joint_speeds=SPEEDS):
     # Waypoints are traversed with smoothstep: bound peak joint speeds along the path.
     joint_time = max(1.5*(len(path)-1)*abs(b-a)/speed
                      for before, after in zip(path, path[1:])
-                     for a, b, speed in zip(before, after, SPEEDS))
+                     for a, b, speed in zip(before, after, joint_speeds))
     tool_time = 0.0
     if tool_speed is not None:
         points = [forward_kinematics(q) for q in path]
@@ -95,11 +101,12 @@ class PickSequence:
         else:
             raise ValueError(f'No pick path passed the sampled checks: {error}')
         stages = [
-            dict(name='approach', path=approach, duration=path_duration(approach, minimum=8.0, tool_speed=None), finger=finger),
-            dict(name='open', pose=above, duration=max(1.0, 1.5*abs(opened-finger)/0.01),
+            dict(name='approach', path=approach, duration=path_duration(
+                approach, minimum=UNLOADED_MIN_DURATION, tool_speed=None, joint_speeds=UNLOADED_SPEEDS), finger=finger),
+            dict(name='open', pose=above, duration=finger_motion_duration(finger, opened)+POSITION_SETTLE_TIME,
                  finger=finger, end_finger=opened),
             dict(name='descend', path=descend, duration=path_duration(descend), finger=opened),
-            dict(name='close', pose=descend[-1], duration=1.5*opened/0.01+3.0,
+            dict(name='close', pose=descend[-1], duration=finger_motion_duration(opened, n.gripper.closed)+CONTACT_SETTLE_TIME,
                  finger=opened, end_finger=0.02),
             dict(name='lift', path=lift, duration=path_duration(lift), finger=0.02),
         ]

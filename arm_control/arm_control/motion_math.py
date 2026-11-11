@@ -8,6 +8,9 @@ JOINTS = ('base_rotation_joint', 'shoulder_joint', 'elbow_joint', 'wrist_pitch_j
 TOPICS = ('/arm/base/target', '/arm/shoulder/target', '/arm/elbow/target', '/arm/wrist/target')
 # rad/s, below the current URDF limits.
 SPEEDS = (0.30, 0.25, 0.35, 0.20)
+# Unloaded travel may be faster; grasping/carrying retain the original limits.
+UNLOADED_SPEEDS = tuple(1.25*speed for speed in SPEEDS)
+UNLOADED_MIN_DURATION = 6.0
 
 
 def interpolate(start, goal, fraction):

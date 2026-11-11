@@ -8,6 +8,7 @@ from std_srvs.srv import Trigger
 
 from arm_control.target_selection import AmbiguousTarget, choose_object
 from arm_control.task_request import ClarificationRequired, resolve_action, validate_task
+from arm_control.errors import PerceptionNotReady
 
 
 class TaskRunner:
@@ -79,10 +80,12 @@ class TaskRunner:
             if n.grasp_uncertain:
                 raise ValueError(n.grasp_recovery_message())
             task = resolve_action(task, n.held)
-            if task['action'] in ('pick', 'pick_and_place'):
-                problem = n.objects_problem()
-                if problem:
+            problem = n.objects_problem()
+            if problem:
+                if n.objects is not None and n.objects.header.frame_id != 'base_link':
                     raise ValueError(problem)
+                raise PerceptionNotReady(problem)
+            if task['action'] in ('pick', 'pick_and_place'):
                 query = task['object']
                 color, point = choose_object(n.objects, query['color'], query['selector'],
                                              query['source'], n.layout)
@@ -98,9 +101,15 @@ class TaskRunner:
                 task['object']['color'] = color
                 self.source = point
             else:
+                getattr(n, task['destination']).available()
                 result = n.prepare_place(None, Trigger.Response(), destination=task['destination'])
             if not result.success:
                 raise ValueError(result.message)
+        except PerceptionNotReady as error:
+            response.retryable = True
+            response.message = str(error)
+            self.publish('not_ready', response.message)
+            return response
         except (ClarificationRequired, AmbiguousTarget) as error:
             response.needs_clarification = True
             response.message = str(error)

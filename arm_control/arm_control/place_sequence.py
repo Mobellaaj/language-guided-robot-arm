@@ -3,6 +3,8 @@ from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from arm_control.ik_solver import forward_kinematics, solve_downward_ik
 from arm_control.pick_sequence import PickSequence, vertical_path, path_duration
+from arm_control.motion_math import UNLOADED_SPEEDS, UNLOADED_MIN_DURATION
+from arm_control.gripper_control import finger_motion_duration, POSITION_SETTLE_TIME
 
 
 class PlaceSequence(PickSequence):
@@ -46,10 +48,11 @@ class PlaceSequence(PickSequence):
                     dict(name='raise', path=raised, duration=path_duration(raised), finger=finger),
                     dict(name='transfer', path=transfer, duration=path_duration(transfer, minimum=8.0, tool_speed=0.03), finger=finger),
                     dict(name='lower', path=lower, duration=path_duration(lower), finger=finger, tolerance=0.004),
-                    dict(name='open', pose=lower[-1], duration=max(1.0,1.5*(n.gripper.opened-finger)/0.01),
+                    dict(name='open', pose=lower[-1], duration=finger_motion_duration(finger,n.gripper.opened)+POSITION_SETTLE_TIME,
                          finger=finger, end_finger=n.gripper.opened),
                     dict(name='retreat', path=retreat, duration=path_duration(retreat), finger=n.gripper.opened),
-                    dict(name='observe', path=home, duration=path_duration(home, minimum=8.0, tool_speed=None), finger=n.gripper.opened),
+                    dict(name='observe', path=home, duration=path_duration(
+                        home, minimum=UNLOADED_MIN_DURATION, tool_speed=None, joint_speeds=UNLOADED_SPEEDS), finger=n.gripper.opened),
                     dict(name='verify', pose=home[-1], duration=2.0, finger=n.gripper.opened,
                          end_finger=n.gripper.opened),
                 ]

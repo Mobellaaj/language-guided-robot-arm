@@ -6,6 +6,14 @@ from std_msgs.msg import Float64
 from arm_control.motion_math import interpolate
 
 FINGER_JOINTS = ('gripper_opening_joint', 'right_finger_joint')
+FINGER_SPEED = 0.015  # m/s per finger, below the URDF's 0.05 m/s limit.
+POSITION_SETTLE_TIME = 0.3
+CONTACT_SETTLE_TIME = 1.0
+
+
+def finger_motion_duration(start, target):
+    """Smoothstep peak speed is 1.5 * travel / duration."""
+    return max(0.3, 1.5*abs(target-start)/FINGER_SPEED)
 
 
 class GripperControl:
@@ -69,8 +77,7 @@ class GripperControl:
         edge = max(self.positions) if action == 'open' else min(self.positions)
         start = max(self.closed, min(self.opened, edge))
         target = self.opened if action == 'open' else self.closed
-        # Smoothstep peak velocity is 1.5 * travel / duration: at most 1 cm/s per finger.
-        duration = max(1.0, 1.5*abs(target-start)/0.01)
+        duration = finger_motion_duration(start, target)
         self.last_result = None
         self.motion = dict(action=action, start=start, target=target, duration=duration,
                            elapsed=0.0, stable_since=None,
@@ -112,7 +119,7 @@ class GripperControl:
         if error <= 0.001:
             if motion['stable_since'] is None:
                 motion['stable_since'] = motion['elapsed']
-            if motion['elapsed']-motion['stable_since'] >= 0.3:
+            if motion['elapsed']-motion['stable_since'] >= POSITION_SETTLE_TIME:
                 self.motion = None
                 self.last_result = dict(kind='reached', action=motion['action'], gap=gap)
                 self.report(f'Gripper {motion["action"]} completed. Measured gap {gap*1000:.1f} mm. '
@@ -126,19 +133,22 @@ class GripperControl:
                 abs(a-b) for a,b in zip(self.positions, motion['contact_anchor'])) > 0.0005:
             motion['contact_anchor'] = tuple(self.positions)
             motion['contact_since'] = motion['elapsed']
-        contact_settled = motion['elapsed']-motion['contact_since'] >= 1.0
+        contact_settled = motion['elapsed']-motion['contact_since'] >= CONTACT_SETTLE_TIME
+        if motion['action'] == 'close' and contact_settled:
+            # The full closing target has been sent and both fingers have
+            # settled. Keep squeezing; a timeout is not needed to report contact.
+            self.motion = None
+            self.last_result = dict(kind='blocked', action='close', gap=gap)
+            self.report(f'Gripper closure settled. Measured gap {gap*1000:.1f} mm; '
+                        'possible contact or obstruction, not a verified grasp. '
+                        'The closing target remains active; use open gripper to release.')
+            return
         if motion['elapsed'] > motion['duration']+3.0:
-            if motion['action'] == 'close' and not contact_settled:
+            if motion['action'] == 'close':
                 self.cancel(preserve_target=True)
                 reason = 'Closing timed out while the fingers were still moving; no settled contact. No lift requested.'
                 self.last_result = dict(kind='failed', action='close', gap=gap, reason=reason)
                 self.report(reason)
-            elif motion['action'] == 'close':
-                self.motion = None
-                self.last_result = dict(kind='blocked', action='close', gap=gap)
-                self.report(f'Gripper close target not reached. Measured gap {gap*1000:.1f} mm; '
-                            'possible contact or obstruction, not a verified grasp. '
-                            'The controller continues requesting closure; use open gripper to release.')
             else:
                 self.cancel()
                 reason = (f'Opening timed out: requested gap {2*motion["target"]*1000:.1f} mm, '

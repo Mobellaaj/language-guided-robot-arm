@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import time
 
 import rclpy
 from rclpy.node import Node
@@ -96,11 +97,32 @@ def await_response(node, future):
     return result
 
 
+def prepare_task(node, client, text, readiness_timeout=2.0):
+    """Wait briefly for perception; never retry ambiguity, planning or RPC failures.
+
+    Only preparation is retried. Execution always requires a separate command.
+    Sleeping in this CLI process leaves the controller free to process sensors.
+    """
+    deadline = time.monotonic()+readiness_timeout
+    waiting = False
+    while True:
+        reply = await_response(node, client.call_async(PrepareTask.Request(task_json=text)))
+        remaining = deadline-time.monotonic()
+        if reply.success or not reply.retryable or remaining <= 0:
+            return reply
+        if not waiting:
+            print('Waiting briefly for fresh, stable perception...')
+            waiting = True
+        time.sleep(min(0.1, remaining))
+        if time.monotonic() >= deadline:
+            return reply
+
+
 def run_task(node, text):
     client = node.create_client(PrepareTask, '/arm/prepare_task')
     if not client.wait_for_service(timeout_sec=5.0):
         raise RuntimeError('Task service unavailable. Restart the updated combined launch.')
-    reply = await_response(node, client.call_async(PrepareTask.Request(task_json=text)))
+    reply = prepare_task(node, client, text)
     if reply.needs_clarification:
         raise RuntimeError('Clarification required: '+reply.message)
     if not reply.success:

@@ -6,7 +6,7 @@ import pytest
 from std_srvs.srv import Trigger
 
 from arm_control.arm_command import parse_command
-from arm_control.gripper_control import GripperControl
+from arm_control.gripper_control import GripperControl, finger_motion_duration, CONTACT_SETTLE_TIME, FINGER_SPEED
 from arm_control.task_runner import TaskRunner
 from arm_control.move_to_color import MoveToColor
 from arm_control.pick_sequence import PickSequence
@@ -307,3 +307,30 @@ def test_stop_during_task_handoff_holds_the_arm_and_retains_the_grasp():
     assert reply.success and n.task.state == 'cancelled' and not n.task.active
     assert n.last_command == n.measured() and n.held is payload
     assert not publisher.sent
+
+
+def test_settled_contact_finishes_without_waiting_for_the_failure_deadline():
+    control, publisher, _ = gripper()
+    control.positions = (.035,.035)
+    control.start('close')
+    ramp = control.motion['duration']
+    elapsed = 0.
+    # A 4 cm cube prevents each finger closing past 2 cm of travel.
+    while control.active and elapsed < ramp+3.5:
+        control.tick(.05)
+        elapsed += .05
+        if publisher.sent:
+            control.positions = (max(.02,publisher.sent[-1]),)*2
+        if elapsed < ramp+CONTACT_SETTLE_TIME-.05:
+            assert control.active
+    assert control.last_result['kind'] == 'blocked'
+    assert ramp+CONTACT_SETTLE_TIME-.05 <= elapsed < ramp+1.25
+    assert publisher.sent[-1] == 0.  # Full squeezing target is retained.
+
+
+def test_finger_ramp_respects_the_configured_peak_speed():
+    from arm_control.motion_math import interpolate
+    duration = finger_motion_duration(.035,0.)
+    positions = [interpolate((.035,),(0.,),i/500)[0] for i in range(501)]
+    assert max(abs(a-b) for a,b in zip(positions,positions[1:]))/(duration/500) <= FINGER_SPEED*1.001
+    assert FINGER_SPEED <= .05

@@ -8,10 +8,11 @@ from vision_msgs.msg import Detection3DArray, Detection3D, ObjectHypothesisWithP
 
 from arm_control.ik_solver import JOINT_LIMITS, forward_kinematics, solve_downward_ik
 from arm_control.ik_visualization import PreviewModel, origin_matrix
-from arm_control.motion_math import JOINTS, SPEEDS, duration_for, interpolate, check_finger_ground
+from arm_control.motion_math import JOINTS, SPEEDS, UNLOADED_SPEEDS, UNLOADED_MIN_DURATION, duration_for, interpolate, check_finger_ground
 from arm_control.pick_sequence import vertical_path, path_duration, sample_path
 from arm_control.place_sequence import PlaceSequence
 from arm_control.scene_planner import ScenePlanner
+from arm_control.gripper_control import FINGER_SPEED, FINGER_JOINTS
 from arm_perception.platform_geometry import PlatformLayout
 
 
@@ -120,3 +121,18 @@ def test_measured_finger_floor_clearance_blocks_contact(model):
     check_finger_ground(model, solve_downward_ik(.327, 0., .035)[0], .035)
     with pytest.raises(ValueError, match='less than 1 mm'):
         check_finger_ground(model, solve_downward_ik(.327, 0., .030)[0], .035)
+
+
+def test_unloaded_profile_is_faster_and_stays_within_robot_joint_limits(model):
+    start = (0.,0.,0.,0.)
+    goal = solve_downward_ik(.327,0.,.14)[0]
+    path = [start,goal]
+    slow = path_duration(path,minimum=8.,tool_speed=None)
+    fast = path_duration(path,minimum=UNLOADED_MIN_DURATION,tool_speed=None,joint_speeds=UNLOADED_SPEEDS)
+    assert fast < slow
+    samples = np.array([sample_path(path,i/500) for i in range(501)])
+    assert np.all(np.max(abs(np.diff(samples,axis=0)),axis=0)/(fast/500) <= np.array(UNLOADED_SPEEDS)*1.001)
+    limits = [float(model.robot.find(f"joint[@name='{name}']/limit").get('velocity')) for name in JOINTS]
+    assert np.all(np.array(UNLOADED_SPEEDS) <= limits)
+    for name in FINGER_JOINTS:
+        assert FINGER_SPEED <= float(model.robot.find(f"joint[@name='{name}']/limit").get('velocity'))
